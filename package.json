@@ -4,6 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "start": "nodemon index.js -e js"
+  },
   "dependencies": {
     "node-pty": "^0.10.1",
     "ssh2": "^1.11.0"
@@ -12,6 +15,7 @@
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.25.2"
+    "eslint-plugin-import": "^2.25.2",
+    "nodemon": "^2.0.20"
   }
 }
