@@ -18,12 +18,10 @@ const allowedPubKey = parseKey(readFileSync('foo.pub'));
 
 function checkValue(input, allowed) {
   const autoReject = (input.length !== allowed.length);
-  if (autoReject) {
-    // Prevent leaking length information by always making a comparison with the
-    // same input when lengths don't match what we expect ...
-    allowed = input;
-  }
-  const isMatch = timingSafeEqual(input, allowed);
+
+  // Prevent leaking length information by always making a comparison with the
+  // same input when lengths don't match what we expect ...
+  const isMatch = autoReject ? timingSafeEqual(input, input) : timingSafeEqual(input, allowed);
   return (!autoReject && isMatch);
 }
 
@@ -116,6 +114,6 @@ new Server({
   }).on('close', () => {
     console.log('Client disconnected');
   });
-}).listen(8081, '127.0.0.1', function() {
+}).listen(8081, '127.0.0.1', function callback() {
   console.log(`Listening on port ${this.address().port}`);
 });
