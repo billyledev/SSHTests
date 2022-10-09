@@ -7,6 +7,11 @@ const { utils: { parseKey }, Server } = require('ssh2');
 
 // Meant to be run on Docker using Linux images
 const shell = 'bash';
+// Force bashrc sourcing
+const shellOpts = [
+  '--rcfile',
+  '.bashrc',
+];
 const allowedUser = Buffer.from('foo');
 const allowedPassword = Buffer.from('bar');
 const allowedPubKey = parseKey(readFileSync('foo.pub'));
@@ -78,12 +83,15 @@ new Server({
       session.on('shell', (accept, reject) => {
         const stream = accept();
 
-        const ptyProcess = pty.spawn(shell, [], {
+        const { env } = process;
+        process.env.HOME = './home';
+
+        const ptyProcess = pty.spawn(shell, shellOpts, {
           name: 'xterm-color',
           cols: 80,
           rows: 30,
-          cwd: process.env.HOME,
-          env: process.env,
+          cwd: env.HOME,
+          env,
         });
 
         ptyProcess.onData((data) => {
@@ -101,7 +109,7 @@ new Server({
         }).stderr.on('data', (data) => {
           console.log(`STDERR: ${data}`);
         }).on('exit', (code, signal) => {
-          console.log('Exited with code ' + code + ' and signal: ' + signal);
+          console.log(`Exited with code ${code} and signal: ${signal}`);
         });
       });
     });
