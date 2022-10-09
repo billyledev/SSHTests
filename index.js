@@ -23,14 +23,17 @@ function checkValue(input, allowed) {
 }
 
 new Server({
-  hostKeys: [readFileSync('host.key')],
+  hostKeys: [
+    readFileSync('host.key'),
+  ],
 }, (client) => {
   console.log('Client connected!');
 
   client.on('authentication', (ctx) => {
     let allowed = true;
-    if (!checkValue(Buffer.from(ctx.username), allowedUser))
+    if (!checkValue(Buffer.from(ctx.username), allowedUser)) {
       allowed = false;
+    }
 
     switch (ctx.method) {
       case 'password':
@@ -83,14 +86,20 @@ new Server({
           env: process.env,
         });
 
-        ptyProcess.on('data', (data) => {
+        ptyProcess.onData((data) => {
           stream.write(data);
+        });
+
+        ptyProcess.onExit((data) => {
+          console.log(`Received exit signal with code: ${data.exitCode}`);
+          stream.exit(0);
+          stream.end();
         });
 
         stream.on('data', (data) => {
           ptyProcess.write(data);
         }).stderr.on('data', (data) => {
-          console.log('STDERR: ' + data);
+          console.log(`STDERR: ${data}`);
         }).on('exit', (code, signal) => {
           console.log('Exited with code ' + code + ' and signal: ' + signal);
         });
