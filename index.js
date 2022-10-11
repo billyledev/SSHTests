@@ -65,6 +65,8 @@ new Server({
 
     client.on('session', (accept, reject) => {
       const session = accept();
+
+      // Executed when a command string is sent
       session.once('exec', (accept, reject, info) => {
         console.log(`Client wants to execute: ${inspect(info.command)}`);
         const stream = accept();
@@ -74,10 +76,12 @@ new Server({
         stream.end();
       });
 
+      // Executed when an allocation of a  pseudo-TTY is requested
       session.on('pty', (accept, reject, info) => {
         accept();
       });
 
+      // Executed when an interactive shell is requested
       session.on('shell', (accept, reject) => {
         const stream = accept();
 
