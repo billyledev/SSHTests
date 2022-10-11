@@ -7,6 +7,7 @@ for cmd in $commands; do
   enable -n $cmd 2>/dev/null
   alias $cmd="echo $cmd: command not found"
 done
+alias alias="echo alias: command not found"
 enable -n alias
 enable -n enable
 
