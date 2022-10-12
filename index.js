@@ -12,9 +12,19 @@ const shellOpts = [
   '--rcfile',
   '.bashrc',
 ];
-const allowedUser = Buffer.from('foo');
 const allowedPassword = Buffer.from('bar');
-const allowedPubKey = parseKey(readFileSync('foo.pub'));
+
+function loadAllowedUsers() {
+  const allowedUsers = [];
+  const usersList = JSON.parse(readFileSync('authorized/users.json'));
+  usersList.forEach((user) => {
+    allowedUsers.push(Buffer.from(user));
+  });
+  return allowedUsers;
+}
+
+const allowedUsers = loadAllowedUsers();
+const allowedPubKey = parseKey(readFileSync('authorized/keys/foo.pub'));
 
 function checkValue(input, allowed) {
   const autoReject = (input.length !== allowed.length);
@@ -23,6 +33,18 @@ function checkValue(input, allowed) {
   // same input when lengths don't match what we expect ...
   const isMatch = autoReject ? timingSafeEqual(input, input) : timingSafeEqual(input, allowed);
   return (!autoReject && isMatch);
+}
+
+function checkUserAllowed(username) {
+  let match = false;
+
+  allowedUsers.forEach((allowed) => {
+    if (checkValue(username, allowed)) {
+      match = true;
+    }
+  });
+
+  return match;
 }
 
 new Server({
@@ -34,7 +56,7 @@ new Server({
 
   client.on('authentication', (ctx) => {
     let allowed = true;
-    if (!checkValue(Buffer.from(ctx.username), allowedUser)) {
+    if (!checkUserAllowed(Buffer.from(ctx.username))) {
       allowed = false;
     }
 
@@ -70,8 +92,6 @@ new Server({
       session.once('exec', (accept, reject, info) => {
         console.log(`Client wants to execute: ${inspect(info.command)}`);
         const stream = accept();
-        stream.stderr.write('Oh no, the dreaded errors!\n');
-        stream.write('Just kidding about the errors!\n');
         stream.exit(0);
         stream.end();
       });
