@@ -1,9 +1,13 @@
-const { timingSafeEqual } = require('crypto');
-const { readFileSync } = require('fs');
-const { inspect } = require('util');
-const pty = require('node-pty');
+import { timingSafeEqual } from 'crypto';
+import { readFileSync } from 'fs';
+import { inspect } from 'util';
+import pty from 'node-pty';
 
-const { utils: { parseKey }, Server } = require('ssh2');
+import {
+  utils,
+  Server,
+  Connection,
+} from 'ssh2';
 
 // Meant to be run on Docker using Linux images
 const shell = 'bash';
@@ -14,19 +18,24 @@ const shellOpts = [
 ];
 const allowedPassword = Buffer.from('bar');
 
-function loadAllowedUsers() {
-  const allowedUsers = [];
+interface ExitData {
+  exitCode: number;
+  signal?: number;
+};
+
+function loadAllowedUsers(): Buffer[] {
+  const allowedUsers: Buffer[] = [];
   const usersList = JSON.parse(readFileSync('authorized/users.json'));
-  usersList.forEach((user) => {
+  usersList.forEach((user: string) => {
     allowedUsers.push(Buffer.from(user));
   });
   return allowedUsers;
 }
 
 const allowedUsers = loadAllowedUsers();
-const allowedPubKey = parseKey(readFileSync('authorized/keys/foo.pub'));
+const allowedPubKey = utils.parseKey(readFileSync('authorized/keys/foo.pub'));
 
-function checkValue(input, allowed) {
+function checkValue(input: Buffer, allowed: Buffer) {
   const autoReject = (input.length !== allowed.length);
 
   // Prevent leaking length information by always making a comparison with the
@@ -35,7 +44,7 @@ function checkValue(input, allowed) {
   return (!autoReject && isMatch);
 }
 
-function checkUserAllowed(username) {
+function checkUserAllowed(username: Buffer) {
   let match = false;
 
   allowedUsers.forEach((allowed) => {
@@ -51,7 +60,7 @@ new Server({
   hostKeys: [
     readFileSync('host.key'),
   ],
-}, (client) => {
+}, (client: Connection) => {
   console.log('Client connected!');
 
   client.on('authentication', (ctx) => {
@@ -116,11 +125,11 @@ new Server({
           env,
         });
 
-        ptyProcess.onData((data) => {
+        ptyProcess.onData((data: string) => {
           stream.write(data);
         });
 
-        ptyProcess.onExit((data) => {
+        ptyProcess.onExit((data: ExitData) => {
           console.log(`Received exit signal with code: ${data.exitCode}`);
           stream.exit(0);
           stream.end();

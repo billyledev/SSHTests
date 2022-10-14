@@ -1,3 +1,4 @@
 node_modules
 *.pub
 *.key
+index.js
