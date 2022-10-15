@@ -1,13 +1,14 @@
 import { timingSafeEqual } from 'crypto';
 import { readFileSync } from 'fs';
 import { inspect } from 'util';
-import pty from 'node-pty';
+import { spawn } from 'node-pty';
 
 import {
   utils,
   Server,
-  Connection,
+  ParsedKey,
 } from 'ssh2';
+import { AddressInfo } from 'net';
 
 // Meant to be run on Docker using Linux images
 const shell = 'bash';
@@ -25,15 +26,23 @@ interface ExitData {
 
 function loadAllowedUsers(): Buffer[] {
   const allowedUsers: Buffer[] = [];
-  const usersList = JSON.parse(readFileSync('authorized/users.json'));
+  const usersList = JSON.parse(readFileSync('authorized/users.json', 'ascii'));
   usersList.forEach((user: string) => {
     allowedUsers.push(Buffer.from(user));
   });
   return allowedUsers;
 }
 
+function loadKey(path: string): ParsedKey {
+  const key = utils.parseKey(readFileSync(path));
+  if (key instanceof Error) {
+    throw Error;
+  }
+  return key;
+}
+
 const allowedUsers = loadAllowedUsers();
-const allowedPubKey = utils.parseKey(readFileSync('authorized/keys/foo.pub'));
+const allowedPubKey = loadKey('authorized/keys/foo.pub');
 
 function checkValue(input: Buffer, allowed: Buffer) {
   const autoReject = (input.length !== allowed.length);
@@ -60,7 +69,7 @@ new Server({
   hostKeys: [
     readFileSync('host.key'),
   ],
-}, (client: Connection) => {
+}, (client) => {
   console.log('Client connected!');
 
   client.on('authentication', (ctx) => {
@@ -78,7 +87,7 @@ new Server({
       case 'publickey':
         if (ctx.key.algo !== allowedPubKey.type
             || !checkValue(ctx.key.data, allowedPubKey.getPublicSSH())
-            || (ctx.signature && allowedPubKey.verify(ctx.blob, ctx.signature) !== true)) {
+            || (ctx.blob && ctx.signature && allowedPubKey.verify(ctx.blob, ctx.signature) !== true)) {
           return ctx.reject();
         }
         break;
@@ -117,25 +126,25 @@ new Server({
         const { env } = process;
         process.env.HOME = './home';
 
-        const ptyProcess = pty.spawn(shell, shellOpts, {
+        const ptyProcess = spawn(shell, shellOpts, {
           name: 'xterm-color',
           cols: 80,
           rows: 30,
           cwd: env.HOME,
-          env,
+          env: (env as { [key: string]: string }),
         });
 
         ptyProcess.onData((data: string) => {
           stream.write(data);
         });
 
-        ptyProcess.onExit((data: ExitData) => {
+        ptyProcess.onExit((data) => {
           console.log(`Received exit signal with code: ${data.exitCode}`);
           stream.exit(0);
           stream.end();
         });
 
-        stream.on('data', (data) => {
+        stream.on('data', (data: string) => {
           ptyProcess.write(data);
         }).stderr.on('data', (data) => {
           console.log(`STDERR: ${data}`);
@@ -147,6 +156,6 @@ new Server({
   }).on('close', () => {
     console.log('Client disconnected');
   });
-}).listen(8081, '127.0.0.1', function callback() {
-  console.log(`Listening on port ${this.address().port}`);
+}).listen(8081, '127.0.0.1', function callback(this: Server) {
+  console.log(`Listening on port ${(this.address() as AddressInfo).port}`);
 });
