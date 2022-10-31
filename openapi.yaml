@@ -1,0 +1,41 @@
+openapi: 3.0.0
+info:
+  title: Virtual device API
+  description: This is the OpenAPI specifications for the virtual device API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+    description: Default test server
+paths:
+  /users:
+    get:
+      summary: Returns the list of allowed users
+      responses:
+        200:
+          description: An array of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersArray'
+components:
+  schemas:
+    AuthType:
+      type: string
+      enum:
+        - pass
+        - pubkey
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        authtype:
+          $ref: '#/components/schemas/AuthType'
+        password:
+          type: string
+        key:
+          type: string
+    UsersArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
