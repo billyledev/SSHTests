@@ -7,9 +7,21 @@ servers:
   - url: http://localhost:8080/v1
     description: Default test server
 paths:
+  /settings:
+    summary: Update the general settings
+    put:
+      summary: Update the settings
+      tags:
+        - Settings
+      responses:
+        200:
+          description: Settings updated
   /users:
+    summary: Update the allowed users
     get:
-      summary: Returns the list of allowed users
+      summary: Get the list of users
+      tags:
+        - Users
       responses:
         200:
           description: An array of users
@@ -17,6 +29,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsersArray'
+    post:
+      summary: Create a new user
+      tags:
+        - Users
+      responses:
+        201:
+          description: User created
+    put:
+      summary: Update an user
+      tags:
+        - Users
+      responses:
+        200:
+          description: User updated
+    delete:
+      summary: Delete an user
+      tags:
+        - Users
+      responses:
+        200:
+          description: User deleted
+  /commands:
+    summary: Update the device commands
+    get:
+      summary: Get the list of commands
+      tags:
+        - Commands
+      responses:
+        200:
+          description: An array of commands
+    post:
+      summary: Create a new command
+      tags:
+        - Commands
+      responses:
+        201:
+          description: Command created
+    put:
+      summary: Update a command
+      tags:
+        - Commands
+      responses:
+        200:
+          description: Command updated
+    delete:
+      summary: Delete a command
+      tags:
+        - Commands
+      responses:
+        200:
+          description: Command deleted
 components:
   schemas:
     AuthType:
