@@ -17,6 +17,10 @@ paths:
       responses:
         200:
           description: The current settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
     put:
       operationId: updateSettings
       summary: Update the settings
@@ -107,10 +111,31 @@ components:
     Settings:
       type: object
       properties:
-        port:
-          type: integer
-          minimum: 0
-          maximum: 65535
+        general:
+          type: object
+          properties:
+            port:
+              type: integer
+              minimum: 0
+              maximum: 65535
+              example: 22
+            banner:
+              type: string
+        prompt:
+          type: object
+          properties:
+            default:
+              type: string
+              example: \u@\h\$
+            continuation:
+              type: string
+              example: '>'
+            selection:
+              type: string
+              example: '#?'
+            lines:
+              type: string
+              example: +
     User:
       type: object
       properties:
