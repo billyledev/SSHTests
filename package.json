@@ -7,13 +7,15 @@
   "scripts": {
     "build": "tsc",
     "prestart": "yarn build",
-    "start": "nodemon index.js -e js"
+    "start": "nodemon index.js -e js",
+    "generate": "npx openapi-generator-cli generate -g nodejs-express-server -i openapi.yaml -o api"
   },
   "dependencies": {
     "node-pty": "^0.10.1",
     "ssh2": "^1.11.0"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.5.2",
     "@types/node": "^18.8.5",
     "@types/ssh2": "^1.11.6",
     "eslint": "^7.32.0 || ^8.2.0",
