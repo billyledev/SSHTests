@@ -26,8 +26,14 @@ paths:
       summary: Update the settings
       tags:
         - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
       responses:
-        200:
+        204:
           description: Settings updated
   /users:
     summary: Update the allowed users
@@ -48,6 +54,12 @@ paths:
       summary: Create a new user
       tags:
         - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
       responses:
         201:
           description: User created
@@ -56,16 +68,34 @@ paths:
       summary: Update an user
       tags:
         - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
       responses:
-        200:
+        204:
           description: User updated
     delete:
       operationId: deleteUser
       summary: Delete an user
       tags:
         - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: foo
+              required:
+                - username
       responses:
-        200:
+        204:
           description: User deleted
   /commands:
     summary: Update the device commands
@@ -77,11 +107,21 @@ paths:
       responses:
         200:
           description: An array of commands
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandsArray'
     post:
       operationId: createCommand
       summary: Create a new command
       tags:
         - Commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Command'
       responses:
         201:
           description: Command created
@@ -90,16 +130,33 @@ paths:
       summary: Update a command
       tags:
         - Commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Command'
       responses:
-        200:
+        204:
           description: Command updated
     delete:
       operationId: deleteCommand
       summary: Delete a command
       tags:
         - Commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
       responses:
-        200:
+        204:
           description: Command deleted
 components:
   schemas:
@@ -121,6 +178,8 @@ components:
               example: 22
             banner:
               type: string
+            invalidCmdMsg:
+              type: string
         prompt:
           type: object
           properties:
@@ -141,13 +200,33 @@ components:
       properties:
         username:
           type: string
+          example: foo
         authtype:
           $ref: '#/components/schemas/AuthType'
+          example: pass
         password:
           type: string
+          example: bar
         key:
           type: string
+          example: null
+      required:
+        - username
+    Command:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+      required:
+        - name
+        - content
     UsersArray:
       type: array
       items:
         $ref: '#/components/schemas/User'
+    CommandsArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Command'
