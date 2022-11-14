@@ -7,7 +7,7 @@ const router = Router();
 function init(db: loki) {
   router.route('/commands')
     .get((req, res, next) => {
-      const commands = getCommands(db);
+      const commands = getCommands();
       res.json(commands);
     })
     .post((req, res, next) => {
@@ -17,9 +17,10 @@ function init(db: loki) {
     .put((req, res, next) => {
       updateCommand(db, req.body);
       res.status(204).send();
-    })
+    });
+  router.route('/commands/:commandId')
     .delete((req, res, next) => {
-      deleteCommand(db, req.body);
+      deleteCommand(req.params.commandId);
       res.status(204).send();
     });
 }
