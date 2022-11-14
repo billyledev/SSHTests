@@ -139,22 +139,20 @@ paths:
       responses:
         204:
           description: Command updated
+  /commands/{commandId}:
     delete:
       operationId: deleteCommand
       summary: Delete a command
       tags:
         - Commands
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-              required:
-                - name
+      parameters:
+        - in: path
+          name: commandId
+          schema:
+            type: string
+            example: echo
+          required: true
+          description: Name of the command to delete
       responses:
         204:
           description: Command deleted
